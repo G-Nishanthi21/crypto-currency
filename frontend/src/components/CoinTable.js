@@ -16,7 +16,7 @@ function CoinTable(props) {
             try {
 
                 const response = await fetch(
-                    "http://localhost:5000/api/coins"
+                    "https://crypto-currency-8935.onrender.com/api/coins"
                 );
 
                 if (response.status !== 200) {

@@ -18,7 +18,7 @@ function OrderBook(props) {
         let reconnectTimer;
         let shouldReconnect = true;
 
-        axios.get("http://localhost:5000/api/orderbook/" + props.symbol)
+        axios.get("https://crypto-currency-8935.onrender.com/api/orderbook/" + props.symbol)
             .then((response) => {
 
                 const bidList = [];

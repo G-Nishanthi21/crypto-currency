@@ -30,7 +30,7 @@ function CryptoChart(props) {
         let shouldReconnect = true;
 
         axios.get(
-            "http://localhost:5000/api/klines/" +
+            "https://crypto-currency-8935.onrender.com/api/klines/" +
             symbol +
             "?interval=" + interval + "&limit=200"
         )
