@@ -16,10 +16,12 @@ app.get("/api/coins", async (req, res) => {
     try {
 
         const response = await fetch(
-            "https://api.binance.com/api/v3/ticker/24hr"
+            "https://data-api.binance.vision/api/v3/ticker/24hr"
         );
 
         if (response.status !== 200) {
+            console.log("Coins API Status:", response.status);
+
             return res.status(500).json({
                 message: "Binance API request failed"
             });
@@ -86,10 +88,12 @@ app.get("/api/orderbook/:symbol", async (req, res) => {
         const symbol = req.params.symbol;
 
         const response = await fetch(
-            "https://api.binance.com/api/v3/depth?symbol=" + symbol + "&limit=10"
+            "https://data-api.binance.vision/api/v3/depth?symbol=" + symbol + "&limit=10"
         );
 
         if (response.status !== 200) {
+            console.log("Order Book API Status:", response.status);
+
             return res.status(500).json({
                 message: "Order Book API request failed"
             });
@@ -120,7 +124,7 @@ app.get("/api/klines/:symbol", async (req, res) => {
         const limit = req.query.limit || 200;
 
         const response = await fetch(
-            "https://api.binance.com/api/v3/klines?symbol=" +
+            "https://data-api.binance.vision/api/v3/klines?symbol=" +
             symbol +
             "&interval=" +
             interval +
@@ -129,6 +133,8 @@ app.get("/api/klines/:symbol", async (req, res) => {
         );
 
         if (response.status !== 200) {
+            console.log("Klines API Status:", response.status);
+
             return res.status(500).json({
                 message: "Klines API request failed"
             });
@@ -142,8 +148,6 @@ app.get("/api/klines/:symbol", async (req, res) => {
 
         console.log("Klines API Error:", error.message);
 
-
-        
         return res.status(500).json({
             message: "Unable to fetch candle data"
         });
@@ -152,7 +156,7 @@ app.get("/api/klines/:symbol", async (req, res) => {
 
 });
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
     console.log("Server is running on port " + PORT);
