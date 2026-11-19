@@ -142,6 +142,8 @@ app.get("/api/klines/:symbol", async (req, res) => {
 
         console.log("Klines API Error:", error.message);
 
+
+        
         return res.status(500).json({
             message: "Unable to fetch candle data"
         });

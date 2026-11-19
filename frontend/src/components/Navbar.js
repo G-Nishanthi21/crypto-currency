@@ -14,6 +14,8 @@ function Navbar() {
                 <span className="live-dot"></span>
                 <span>Live Market</span>
             </div>
+
+            
         </nav>
     );
 }
