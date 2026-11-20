@@ -11,19 +11,34 @@ import CryptoChart from "./components/CryptoChart";
 function App() {
 
     const [selectedCoin, setSelectedCoin] = useState(null);
+    const [isDarkMode, setIsDarkMode] = useState(false);
+
+    function changeTheme() {
+        if (isDarkMode === true) {
+            setIsDarkMode(false);
+        } else {
+            setIsDarkMode(true);
+        }
+    }
 
     return (
-        <div className="app">
+        <div className={isDarkMode ? "app dark-mode" : "app light-mode"}>
 
             <Navbar />
 
             <main className="dashboard-container">
 
                 <div className="page-heading">
+
                     <div>
                         <h1>Crypto Dashboard</h1>
                         <p>Track cryptocurrency prices in real time</p>
                     </div>
+
+                    <button className="theme-button" onClick={changeTheme}>
+                        {isDarkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
+                    </button>
+
                 </div>
 
                 <section className="dashboard-card coin-table-card">
