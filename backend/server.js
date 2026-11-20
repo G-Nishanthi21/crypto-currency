@@ -21,7 +21,6 @@ app.get("/api/coins", async (req, res) => {
 
         if (response.status !== 200) {
             console.log("Coins API Status:", response.status);
-
             return res.status(500).json({
                 message: "Binance API request failed"
             });
@@ -103,14 +102,13 @@ app.get("/api/orderbook/:symbol", async (req, res) => {
 
         res.json(data);
 
-    } catch (error) {
+    }catch (error) {
 
         console.log("Order Book Error:", error.message);
 
         return res.status(500).json({
             message: "Unable to fetch order book"
         });
-
     }
 
 });

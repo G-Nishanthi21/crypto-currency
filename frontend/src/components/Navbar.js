@@ -15,7 +15,6 @@ function Navbar() {
                 <span>Live Market</span>
             </div>
 
-            
         </nav>
     );
 }

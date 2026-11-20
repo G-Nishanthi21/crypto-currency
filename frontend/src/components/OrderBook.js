@@ -1,6 +1,5 @@
 
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 
 function OrderBook(props) {
 
@@ -18,33 +17,38 @@ function OrderBook(props) {
         let reconnectTimer;
         let shouldReconnect = true;
 
-        axios.get("https://crypto-currency-8935.onrender.com/api/orderbook/" + props.symbol)
+        fetch("https://crypto-currency-8935.onrender.com/api/orderbook/" + props.symbol)
             .then((response) => {
+
+                if (response.status === 200) {
+                    return response.json();
+                } else {
+                    throw new Error("API request failed");
+                }
+
+            })
+            .then((data) => {
 
                 const bidList = [];
                 const askList = [];
 
-                for (let i = 0; i < response.data.bids.length; i++) {
+                data.bids.forEach((item) => {
 
-                    const bid = {
-                        price: response.data.bids[i][0],
-                        quantity: response.data.bids[i][1]
-                    };
+                    bidList.push({
+                        price: item[0],
+                        quantity: item[1]
+                    });
 
-                    bidList.push(bid);
+                });
 
-                }
+                data.asks.forEach((item) => {
 
-                for (let i = 0; i < response.data.asks.length; i++) {
+                    askList.push({
+                        price: item[0],
+                        quantity: item[1]
+                    });
 
-                    const ask = {
-                        price: response.data.asks[i][0],
-                        quantity: response.data.asks[i][1]
-                    };
-
-                    askList.push(ask);
-
-                }
+                });
 
                 setBids(bidList);
                 setAsks(askList);
@@ -55,7 +59,7 @@ function OrderBook(props) {
             })
             .catch((error) => {
 
-                console.log("Order Book API Error:", error);
+                console.log("Order Book API Error:", error.message);
 
                 setError("Unable to load order book");
                 setLoading(false);
@@ -71,7 +75,9 @@ function OrderBook(props) {
             );
 
             socket.onopen = () => {
+
                 console.log("Order Book WebSocket Connected");
+
             };
 
             socket.onmessage = (event) => {
@@ -81,27 +87,23 @@ function OrderBook(props) {
                 const bidList = [];
                 const askList = [];
 
-                for (let i = 0; i < message.bids.length; i++) {
+                message.bids.forEach((item) => {
 
-                    const bid = {
-                        price: message.bids[i][0],
-                        quantity: message.bids[i][1]
-                    };
+                    bidList.push({
+                        price: item[0],
+                        quantity: item[1]
+                    });
 
-                    bidList.push(bid);
+                });
 
-                }
+                message.asks.forEach((item) => {
 
-                for (let i = 0; i < message.asks.length; i++) {
+                    askList.push({
+                        price: item[0],
+                        quantity: item[1]
+                    });
 
-                    const ask = {
-                        price: message.asks[i][0],
-                        quantity: message.asks[i][1]
-                    };
-
-                    askList.push(ask);
-
-                }
+                });
 
                 setBids(bidList);
                 setAsks(askList);
@@ -115,8 +117,11 @@ function OrderBook(props) {
                 if (shouldReconnect) {
 
                     reconnectTimer = setTimeout(() => {
+
                         console.log("Reconnecting Order Book...");
+
                         connectSocket();
+
                     }, 3000);
 
                 }
@@ -124,8 +129,11 @@ function OrderBook(props) {
             };
 
             socket.onerror = () => {
+
                 console.log("Order Book WebSocket Error");
+
                 socket.close();
+
             };
 
         }
@@ -137,7 +145,9 @@ function OrderBook(props) {
             clearTimeout(reconnectTimer);
 
             if (socket) {
+
                 socket.close();
+
             }
 
         };
@@ -145,58 +155,93 @@ function OrderBook(props) {
     }, [props.symbol]);
 
     if (loading) {
+
         return <p>Loading order book...</p>;
+
     }
 
     if (error !== "") {
+
         return <p>{error}</p>;
+
     }
 
     return (
+
         <div>
+
             <h2>Order Book - {props.symbol}</h2>
 
             <h3>Bids (Buy Orders)</h3>
 
             <table border="1">
+
                 <thead>
+
                     <tr>
                         <th>Price</th>
                         <th>Quantity</th>
                     </tr>
+
                 </thead>
 
                 <tbody>
-                    {bids.map((bid, index) => (
-                        <tr key={index}>
-                            <td>{bid.price}</td>
-                            <td>{bid.quantity}</td>
-                        </tr>
-                    ))}
+
+                    {bids.map((bid, index) => {
+
+                        return (
+
+                            <tr key={index}>
+
+                                <td>{bid.price}</td>
+                                <td>{bid.quantity}</td>
+
+                            </tr>
+
+                        );
+
+                    })}
+
                 </tbody>
+
             </table>
 
             <h3>Asks (Sell Orders)</h3>
 
             <table border="1">
+
                 <thead>
+
                     <tr>
                         <th>Price</th>
                         <th>Quantity</th>
                     </tr>
+
                 </thead>
 
                 <tbody>
-                    {asks.map((ask, index) => (
-                        <tr key={index}>
-                            <td>{ask.price}</td>
-                            <td>{ask.quantity}</td>
-                        </tr>
-                    ))}
+
+                    {asks.map((ask, index) => {
+
+                        return (
+
+                            <tr key={index}>
+
+                                <td>{ask.price}</td>
+                                <td>{ask.quantity}</td>
+
+                            </tr>
+
+                        );
+
+                    })}
+
                 </tbody>
+
             </table>
 
         </div>
+
     );
 
 }

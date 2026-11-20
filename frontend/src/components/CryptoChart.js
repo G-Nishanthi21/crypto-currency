@@ -1,6 +1,5 @@
 
 import React, { useEffect, useRef, useState } from "react";
-import axios from "axios";
 import { createChart, CandlestickSeries } from "lightweight-charts";
 
 function CryptoChart(props) {
@@ -29,28 +28,37 @@ function CryptoChart(props) {
         let reconnectTimer;
         let shouldReconnect = true;
 
-        axios.get(
+        fetch(
             "https://crypto-currency-8935.onrender.com/api/klines/" +
             symbol +
             "?interval=" + interval + "&limit=200"
         )
             .then((response) => {
 
+                if (response.status !== 200) {
+                    throw new Error("Klines API request failed");
+                }
+
+                return response.json();
+
+            })
+            .then((data) => {
+
                 const candleData = [];
 
-                for (let i = 0; i < response.data.length; i++) {
+                data.forEach((item) => {
 
                     const candle = {
-                        time: response.data[i][0] / 1000,
-                        open: Number(response.data[i][1]),
-                        high: Number(response.data[i][2]),
-                        low: Number(response.data[i][3]),
-                        close: Number(response.data[i][4])
+                        time: item[0] / 1000,
+                        open: Number(item[1]),
+                        high: Number(item[2]),
+                        low: Number(item[3]),
+                        close: Number(item[4])
                     };
 
                     candleData.push(candle);
 
-                }
+                });
 
                 if (shouldReconnect) {
 
@@ -65,7 +73,7 @@ function CryptoChart(props) {
             })
             .catch((error) => {
 
-                console.log("Klines API Error:", error);
+                console.log("Klines API Error:", error.message);
 
                 if (shouldReconnect) {
                     setError("Unable to load chart data");
