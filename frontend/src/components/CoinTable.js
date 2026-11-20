@@ -142,7 +142,7 @@ function CoinTable(props) {
     return (
         <div>
 
-            <h2>Top 10 Cryptocurrencies</h2>
+            <h2> Cryptocurrencies</h2>
 
             <table border="1">
 
