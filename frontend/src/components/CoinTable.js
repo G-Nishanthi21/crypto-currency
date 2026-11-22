@@ -31,6 +31,7 @@ function CoinTable(props) {
 
                 setCoins(data);
                 setLoading(false);
+                connectSocket();
 
             } catch (error) {
 
@@ -120,7 +121,6 @@ function CoinTable(props) {
         }
 
         getCoins();
-        connectSocket();
 
         return () => {
 
