@@ -39,6 +39,7 @@ function CoinTable(props) {
             } catch (error) {
 
                 if (shouldReconnect) {
+                    console.log("Coins API Error:", error.message);
                     setError("Unable to load coin data");
                     setLoading(false);
                 }
@@ -70,6 +71,15 @@ function CoinTable(props) {
 
                 console.log("Live Update:", ticker.s, ticker.c);
 
+                const updatedCoin = {
+                    symbol: ticker.s,
+                    price: ticker.c,
+                    change: ticker.P,
+                    high: ticker.h,
+                    low: ticker.l,
+                    volume: ticker.v
+                };
+
                 setCoins(function (oldCoins) {
 
                     const updatedCoins = [];
@@ -78,16 +88,7 @@ function CoinTable(props) {
 
                         if (item.symbol === ticker.s) {
 
-                            const coin = {
-                                symbol: ticker.s,
-                                price: ticker.c,
-                                change: ticker.P,
-                                high: ticker.h,
-                                low: ticker.l,
-                                volume: ticker.v
-                            };
-
-                            updatedCoins.push(coin);
+                            updatedCoins.push(updatedCoin);
 
                         } else {
 
@@ -98,6 +99,28 @@ function CoinTable(props) {
                     });
 
                     return updatedCoins;
+
+                });
+
+                props.setSelectedCoin(function (oldSelectedCoin) {
+
+                    if (oldSelectedCoin !== null) {
+
+                        if (oldSelectedCoin.symbol === ticker.s) {
+
+                            console.log(
+                                "Selected Coin Updated:",
+                                ticker.s,
+                                ticker.c
+                            );
+
+                            return updatedCoin;
+
+                        }
+
+                    }
+
+                    return oldSelectedCoin;
 
                 });
 
@@ -158,6 +181,7 @@ function CoinTable(props) {
     }
 
     return (
+
         <div>
 
             <h2>Cryptocurrencies</h2>
@@ -209,6 +233,7 @@ function CoinTable(props) {
             </table>
 
         </div>
+
     );
 
 }
