@@ -54,7 +54,7 @@ function CoinTable(props) {
             }
 
             socket = new WebSocket(
-                "wss://stream.binance.com:9443/stream?streams=btcusdt@ticker/ethusdt@ticker/bnbusdt@ticker/solusdt@ticker/xrpusdt@ticker/adausdt@ticker/dogeusdt@ticker/trxusdt@ticker/avaxusdt@ticker/linkusdt@ticker"
+                "wss://data-stream.binance.vision:443/stream?streams=btcusdt@ticker/ethusdt@ticker/bnbusdt@ticker/solusdt@ticker/xrpusdt@ticker/adausdt@ticker/dogeusdt@ticker/trxusdt@ticker/avaxusdt@ticker/linkusdt"
             );
 
             socket.onopen = () => {
@@ -111,7 +111,11 @@ function CoinTable(props) {
 
             socket.onclose = (event) => {
 
-                console.log("WebSocket Disconnected:", event.code, event.reason);
+                console.log(
+                    "WebSocket Disconnected:",
+                    event.code,
+                    event.reason
+                );
 
                 if (shouldReconnect) {
 
@@ -138,9 +142,7 @@ function CoinTable(props) {
             clearTimeout(reconnectTimer);
 
             if (socket) {
-
                 socket.close();
-
             }
 
         };
@@ -183,6 +185,7 @@ function CoinTable(props) {
                         >
 
                             <td>{coin.symbol}</td>
+
                             <td>${coin.price}</td>
 
                             <td style={{
@@ -192,7 +195,9 @@ function CoinTable(props) {
                             </td>
 
                             <td>${coin.high}</td>
+
                             <td>${coin.low}</td>
+
                             <td>{coin.volume}</td>
 
                         </tr>
