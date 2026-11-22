@@ -1,9 +1,7 @@
-
 import React, { useEffect, useState } from "react";
 
 function CoinTable(props) {
 
-    const [coins, setCoins] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -29,7 +27,7 @@ function CoinTable(props) {
 
                 if (shouldReconnect) {
 
-                    setCoins(data);
+                    props.setCoins(data);
                     setLoading(false);
 
                     connectSocket();
@@ -39,9 +37,13 @@ function CoinTable(props) {
             } catch (error) {
 
                 if (shouldReconnect) {
+
                     console.log("Coins API Error:", error.message);
+
                     setError("Unable to load coin data");
+
                     setLoading(false);
+
                 }
 
             }
@@ -69,8 +71,6 @@ function CoinTable(props) {
                 const message = JSON.parse(event.data);
                 const ticker = message.data;
 
-                console.log("Live Update:", ticker.s, ticker.c);
-
                 const updatedCoin = {
                     symbol: ticker.s,
                     price: ticker.c,
@@ -80,7 +80,7 @@ function CoinTable(props) {
                     volume: ticker.v
                 };
 
-                setCoins(function (oldCoins) {
+                props.setCoins(function (oldCoins) {
 
                     const updatedCoins = [];
 
@@ -102,27 +102,11 @@ function CoinTable(props) {
 
                 });
 
-                props.setSelectedCoin(function (oldSelectedCoin) {
-
-                    if (oldSelectedCoin !== null) {
-
-                        if (oldSelectedCoin.symbol === ticker.s) {
-
-                            console.log(
-                                "Selected Coin Updated:",
-                                ticker.s,
-                                ticker.c
-                            );
-
-                            return updatedCoin;
-
-                        }
-
-                    }
-
-                    return oldSelectedCoin;
-
-                });
+                console.log(
+                    "Live Update:",
+                    ticker.s,
+                    ticker.c
+                );
 
             };
 
@@ -189,6 +173,7 @@ function CoinTable(props) {
             <table border="1">
 
                 <thead>
+
                     <tr>
                         <th>Symbol</th>
                         <th>Price</th>
@@ -197,24 +182,36 @@ function CoinTable(props) {
                         <th>24h Low</th>
                         <th>24h Volume</th>
                     </tr>
+
                 </thead>
 
                 <tbody>
 
-                    {coins.map((coin, index) => (
+                    {props.coins.map((coin, index) => (
 
                         <tr
                             key={index}
-                            onClick={() => props.setSelectedCoin(coin)}
+                            onClick={() => props.setSelectedSymbol(coin.symbol)}
+                            style={{
+                                cursor: "pointer",
+                                backgroundColor:
+                                    props.selectedSymbol === coin.symbol
+                                        ? "#e2e8f0"
+                                        : "transparent"
+                            }}
                         >
 
                             <td>{coin.symbol}</td>
 
                             <td>${coin.price}</td>
 
-                            <td style={{
-                                color: Number(coin.change) >= 0 ? "green" : "red"
-                            }}>
+                            <td
+                                style={{
+                                    color: Number(coin.change) >= 0
+                                        ? "green"
+                                        : "red"
+                                }}
+                            >
                                 {coin.change}%
                             </td>
 

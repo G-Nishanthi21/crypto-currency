@@ -1,4 +1,3 @@
-
 import React from "react";
 
 function CoinDetails(props) {
@@ -7,11 +6,8 @@ function CoinDetails(props) {
 
         return (
             <div className="coin-details">
-
                 <h2>Coin Details</h2>
-
-                <p>Select a coin to view details</p>
-
+                <p>Select a cryptocurrency to view details</p>
             </div>
         );
 
@@ -23,28 +19,37 @@ function CoinDetails(props) {
 
             <h2>Coin Details</h2>
 
+            <h3>{props.coin.symbol}</h3>
+
             <p>
-                Symbol: {props.coin.symbol}
+                <strong>Price:</strong> ${props.coin.price}
             </p>
 
             <p>
-                Price: ${props.coin.price}
+                <strong>24h Change:</strong>
+
+                <span
+                    style={{
+                        color: Number(props.coin.change) >= 0
+                            ? "green"
+                            : "red"
+                    }}
+                >
+                    {" "}{props.coin.change}%
+                </span>
+
             </p>
 
             <p>
-                24h Change: {props.coin.change}%
+                <strong>24h High:</strong> ${props.coin.high}
             </p>
 
             <p>
-                24h High: ${props.coin.high}
+                <strong>24h Low:</strong> ${props.coin.low}
             </p>
 
             <p>
-                24h Low: ${props.coin.low}
-            </p>
-
-            <p>
-                24h Volume: {props.coin.volume}
+                <strong>24h Volume:</strong> {props.coin.volume}
             </p>
 
         </div>

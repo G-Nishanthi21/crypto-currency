@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import "./App.css";
 
@@ -10,18 +9,32 @@ import CryptoChart from "./components/CryptoChart";
 
 function App() {
 
-    const [selectedCoin, setSelectedCoin] = useState(null);
+    const [coins, setCoins] = useState([]);
+    const [selectedSymbol, setSelectedSymbol] = useState("BTCUSDT");
     const [isDarkMode, setIsDarkMode] = useState(false);
 
+    let selectedCoin = null;
+
+    coins.forEach((coin) => {
+
+        if (coin.symbol === selectedSymbol) {
+            selectedCoin = coin;
+        }
+
+    });
+
     function changeTheme() {
+
         if (isDarkMode === true) {
             setIsDarkMode(false);
         } else {
             setIsDarkMode(true);
         }
+
     }
 
     return (
+
         <div className={isDarkMode ? "app dark-mode" : "app light-mode"}>
 
             <Navbar />
@@ -35,40 +48,58 @@ function App() {
                         <p>Track cryptocurrency prices in real time</p>
                     </div>
 
-                    <button className="theme-button" onClick={changeTheme}>
+                    <button
+                        className="theme-button"
+                        onClick={changeTheme}
+                    >
                         {isDarkMode ? "☀️ Light Mode" : "🌙 Dark Mode"}
                     </button>
 
                 </div>
 
                 <section className="dashboard-card coin-table-card">
-                    <CoinTable setSelectedCoin={setSelectedCoin} />
+
+                    <CoinTable
+                        coins={coins}
+                        setCoins={setCoins}
+                        selectedSymbol={selectedSymbol}
+                        setSelectedSymbol={setSelectedSymbol}
+                    />
+
                 </section>
 
                 <div className="details-grid">
 
                     <section className="dashboard-card">
+
                         <CoinDetails coin={selectedCoin} />
+
                     </section>
 
                     <section className="dashboard-card">
+
                         <OrderBook
-                            symbol={selectedCoin === null ? "BTCUSDT" : selectedCoin.symbol}
+                            symbol={selectedSymbol}
                         />
+
                     </section>
 
                 </div>
 
                 <section className="dashboard-card chart-card">
+
                     <CryptoChart
-                        symbol={selectedCoin === null ? "BTCUSDT" : selectedCoin.symbol}
+                        symbol={selectedSymbol}
                     />
+
                 </section>
 
             </main>
 
         </div>
+
     );
+
 }
 
 export default App;
