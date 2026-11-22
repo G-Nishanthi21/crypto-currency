@@ -7,9 +7,11 @@ function CoinTable(props) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    useEffect(() =>
-        
-        {
+    useEffect(() => {
+
+        let socket;
+        let reconnectTimer;
+        let shouldReconnect = true;
 
         async function getCoins() {
 
@@ -38,9 +40,6 @@ function CoinTable(props) {
             }
 
         }
-
-        let socket;
-        let reconnectTimer;
 
         function connectSocket() {
 
@@ -96,13 +95,17 @@ function CoinTable(props) {
 
                 console.log("WebSocket Disconnected");
 
-                reconnectTimer = setTimeout(() => {
+                if (shouldReconnect) {
 
-                    console.log("Trying to reconnect...");
+                    reconnectTimer = setTimeout(() => {
 
-                    connectSocket();
+                        console.log("Trying to reconnect...");
 
-                }, 3000);
+                        connectSocket();
+
+                    }, 3000);
+
+                }
 
             };
 
@@ -120,6 +123,8 @@ function CoinTable(props) {
         connectSocket();
 
         return () => {
+
+            shouldReconnect = false;
 
             clearTimeout(reconnectTimer);
 
@@ -142,7 +147,7 @@ function CoinTable(props) {
     return (
         <div>
 
-            <h2> Cryptocurrencies</h2>
+            <h2>Cryptocurrencies</h2>
 
             <table border="1">
 
