@@ -18,8 +18,26 @@ function CryptoChart(props) {
         setError("");
 
         const chart = createChart(chartRef.current, {
-            width: 800,
-            height: 400
+            width: chartRef.current.clientWidth,
+            height: 400,
+            layout: {
+                background: {
+                    color: "transparent"
+                },
+                textColor: "#64748B"
+            },
+            grid: {
+                vertLines: {
+                    color: "#E2E8F0"
+                },
+                horzLines: {
+                    color: "#E2E8F0"
+                }
+            },
+            timeScale: {
+                timeVisible: true,
+                secondsVisible: false
+            }
         });
 
         const candleSeries = chart.addSeries(CandlestickSeries);
@@ -28,39 +46,39 @@ function CryptoChart(props) {
         let reconnectTimer;
         let shouldReconnect = true;
 
-        fetch(
-            "https://crypto-currency-8935.onrender.com/api/klines/" +
-            symbol +
-            "?interval=" + interval + "&limit=200"
-        )
-            .then((response) => {
+        async function getChartData() {
+
+            try {
+
+                const response = await fetch(
+                    "https://crypto-currency-8935.onrender.com/api/klines/" +
+                    symbol +
+                    "?interval=" + interval + "&limit=200"
+                );
 
                 if (response.status !== 200) {
                     throw new Error("Klines API request failed");
                 }
 
-                return response.json();
-
-            })
-            .then((data) => {
-
-                const candleData = [];
-
-                data.forEach((item) => {
-
-                    const candle = {
-                        time: item[0] / 1000,
-                        open: Number(item[1]),
-                        high: Number(item[2]),
-                        low: Number(item[3]),
-                        close: Number(item[4])
-                    };
-
-                    candleData.push(candle);
-
-                });
+                const data = await response.json();
 
                 if (shouldReconnect) {
+
+                    const candleData = [];
+
+                    data.forEach((item) => {
+
+                        const candle = {
+                            time: item[0] / 1000,
+                            open: Number(item[1]),
+                            high: Number(item[2]),
+                            low: Number(item[3]),
+                            close: Number(item[4])
+                        };
+
+                        candleData.push(candle);
+
+                    });
 
                     candleSeries.setData(candleData);
 
@@ -70,28 +88,38 @@ function CryptoChart(props) {
 
                 }
 
-            })
-            .catch((error) => {
-
-                console.log("Klines API Error:", error.message);
+            } catch (error) {
 
                 if (shouldReconnect) {
+
+                    console.log("Klines API Error:", error.message);
+
                     setError("Unable to load chart data");
+
                     setLoading(false);
+
                 }
 
-            });
+            }
+
+        }
 
         function connectSocket() {
 
+            if (shouldReconnect === false) {
+                return;
+            }
+
             socket = new WebSocket(
-                "wss://stream.binance.com:9443/ws/" +
+                "wss://data-stream.binance.vision:443/ws/" +
                 symbol.toLowerCase() +
                 "@kline_" + interval
             );
 
             socket.onopen = () => {
+
                 console.log("Kline WebSocket Connected");
+
             };
 
             socket.onmessage = (event) => {
@@ -110,11 +138,27 @@ function CryptoChart(props) {
 
                 candleSeries.update(candle);
 
+                console.log(
+                    "Chart Live Update:",
+                    symbol,
+                    candle.close
+                );
+
             };
 
-            socket.onclose = () => {
+            socket.onerror = (event) => {
 
-                console.log("Kline WebSocket Disconnected");
+                console.log("Kline WebSocket Error:", event);
+
+            };
+
+            socket.onclose = (event) => {
+
+                console.log(
+                    "Kline WebSocket Disconnected:",
+                    event.code,
+                    event.reason
+                );
 
                 if (shouldReconnect) {
 
@@ -130,18 +174,31 @@ function CryptoChart(props) {
 
             };
 
-            socket.onerror = () => {
-                console.log("Kline WebSocket Error");
-                socket.close();
-            };
+        }
+
+        getChartData();
+
+        function resizeChart() {
+
+            if (chartRef.current) {
+
+                chart.applyOptions({
+                    width: chartRef.current.clientWidth
+                });
+
+            }
 
         }
+
+        window.addEventListener("resize", resizeChart);
 
         return () => {
 
             shouldReconnect = false;
 
             clearTimeout(reconnectTimer);
+
+            window.removeEventListener("resize", resizeChart);
 
             if (socket) {
                 socket.close();
@@ -154,29 +211,46 @@ function CryptoChart(props) {
     }, [symbol, interval]);
 
     return (
-        <div>
+
+        <div className="crypto-chart-container">
 
             <h2>{symbol} Candlestick Chart</h2>
 
-            <label>Select Interval: </label>
+            <div className="chart-controls">
 
-            <select
-                value={interval}
-                onChange={(event) => setInterval(event.target.value)}
-            >
-                <option value="1m">1 Minute</option>
-                <option value="5m">5 Minutes</option>
-                <option value="1h">1 Hour</option>
-                <option value="1d">1 Day</option>
-            </select>
+                <label>Select Interval: </label>
+
+                <select
+                    value={interval}
+                    onChange={(event) => setInterval(event.target.value)}
+                >
+
+                    <option value="1m">1 Minute</option>
+
+                    <option value="5m">5 Minutes</option>
+
+                    <option value="1h">1 Hour</option>
+
+                    <option value="1d">1 Day</option>
+
+                </select>
+
+            </div>
 
             {loading && <p>Loading chart...</p>}
 
             {error !== "" && <p>{error}</p>}
 
-            <div ref={chartRef}></div>
+            <div
+                ref={chartRef}
+                style={{
+                    width: "100%",
+                    minHeight: "400px"
+                }}
+            ></div>
 
         </div>
+
     );
 
 }

@@ -17,59 +17,71 @@ function OrderBook(props) {
         let reconnectTimer;
         let shouldReconnect = true;
 
-        fetch("https://crypto-currency-8935.onrender.com/api/orderbook/" + props.symbol)
-            .then((response) => {
+        async function getOrderBook() {
 
-                if (response.status === 200) {
-                    return response.json();
-                } else {
+            try {
+
+                const response = await fetch(
+                    "https://crypto-currency-8935.onrender.com/api/orderbook/" + props.symbol
+                );
+
+                if (response.status !== 200) {
                     throw new Error("API request failed");
                 }
 
-            })
-            .then((data) => {
+                const data = await response.json();
 
-                const bidList = [];
-                const askList = [];
+                if (shouldReconnect) {
 
-                data.bids.forEach((item) => {
+                    const bidList = [];
+                    const askList = [];
 
-                    bidList.push({
-                        price: item[0],
-                        quantity: item[1]
+                    data.bids.forEach((item) => {
+
+                        bidList.push({
+                            price: item[0],
+                            quantity: item[1]
+                        });
+
                     });
 
-                });
+                    data.asks.forEach((item) => {
 
-                data.asks.forEach((item) => {
+                        askList.push({
+                            price: item[0],
+                            quantity: item[1]
+                        });
 
-                    askList.push({
-                        price: item[0],
-                        quantity: item[1]
                     });
 
-                });
+                    setBids(bidList);
+                    setAsks(askList);
+                    setLoading(false);
 
-                setBids(bidList);
-                setAsks(askList);
-                setLoading(false);
+                    connectSocket();
 
-                connectSocket();
+                }
 
-            })
-            .catch((error) => {
+            } catch (error) {
 
-                console.log("Order Book API Error:", error.message);
+                if (shouldReconnect) {
+                    console.log("Order Book API Error:", error.message);
+                    setError("Unable to load order book");
+                    setLoading(false);
+                }
 
-                setError("Unable to load order book");
-                setLoading(false);
+            }
 
-            });
+        }
 
         function connectSocket() {
 
+            if (shouldReconnect === false) {
+                return;
+            }
+
             socket = new WebSocket(
-                "wss://stream.binance.com:9443/ws/" +
+                "wss://data-stream.binance.vision:443/ws/" +
                 props.symbol.toLowerCase() +
                 "@depth10@100ms"
             );
@@ -108,11 +120,23 @@ function OrderBook(props) {
                 setBids(bidList);
                 setAsks(askList);
 
+                console.log("Order Book Live Update:", props.symbol);
+
             };
 
-            socket.onclose = () => {
+            socket.onerror = (event) => {
 
-                console.log("Order Book WebSocket Disconnected");
+                console.log("Order Book WebSocket Error:", event);
+
+            };
+
+            socket.onclose = (event) => {
+
+                console.log(
+                    "Order Book WebSocket Disconnected:",
+                    event.code,
+                    event.reason
+                );
 
                 if (shouldReconnect) {
 
@@ -128,15 +152,9 @@ function OrderBook(props) {
 
             };
 
-            socket.onerror = () => {
-
-                console.log("Order Book WebSocket Error");
-
-                socket.close();
-
-            };
-
         }
+
+        getOrderBook();
 
         return () => {
 
@@ -145,9 +163,7 @@ function OrderBook(props) {
             clearTimeout(reconnectTimer);
 
             if (socket) {
-
                 socket.close();
-
             }
 
         };
@@ -155,90 +171,92 @@ function OrderBook(props) {
     }, [props.symbol]);
 
     if (loading) {
-
         return <p>Loading order book...</p>;
-
     }
 
     if (error !== "") {
-
         return <p>{error}</p>;
-
     }
 
     return (
 
-        <div>
+        <div className="orderbook-container">
 
             <h2>Order Book - {props.symbol}</h2>
 
-            <h3>Bids (Buy Orders)</h3>
+            <div className="orderbook-grid">
 
-            <table border="1">
+                <div className="bids-section">
 
-                <thead>
+                    <h3>Bids (Buy Orders)</h3>
 
-                    <tr>
-                        <th>Price</th>
-                        <th>Quantity</th>
-                    </tr>
+                    <table border="1">
 
-                </thead>
-
-                <tbody>
-
-                    {bids.map((bid, index) => {
-
-                        return (
-
-                            <tr key={index}>
-
-                                <td>{bid.price}</td>
-                                <td>{bid.quantity}</td>
-
+                        <thead>
+                            <tr>
+                                <th>Price</th>
+                                <th>Quantity</th>
                             </tr>
+                        </thead>
 
-                        );
+                        <tbody>
 
-                    })}
+                            {bids.map((bid, index) => (
 
-                </tbody>
+                                <tr key={index}>
 
-            </table>
+                                    <td style={{ color: "green" }}>
+                                        {bid.price}
+                                    </td>
 
-            <h3>Asks (Sell Orders)</h3>
+                                    <td>{bid.quantity}</td>
 
-            <table border="1">
+                                </tr>
 
-                <thead>
+                            ))}
 
-                    <tr>
-                        <th>Price</th>
-                        <th>Quantity</th>
-                    </tr>
+                        </tbody>
 
-                </thead>
+                    </table>
 
-                <tbody>
+                </div>
 
-                    {asks.map((ask, index) => {
+                <div className="asks-section">
 
-                        return (
+                    <h3>Asks (Sell Orders)</h3>
 
-                            <tr key={index}>
+                    <table border="1">
 
-                                <td>{ask.price}</td>
-                                <td>{ask.quantity}</td>
-
+                        <thead>
+                            <tr>
+                                <th>Price</th>
+                                <th>Quantity</th>
                             </tr>
+                        </thead>
 
-                        );
+                        <tbody>
 
-                    })}
+                            {asks.map((ask, index) => (
 
-                </tbody>
+                                <tr key={index}>
 
-            </table>
+                                    <td style={{ color: "red" }}>
+                                        {ask.price}
+                                    </td>
+
+                                    <td>{ask.quantity}</td>
+
+                                </tr>
+
+                            ))}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
 
         </div>
 
