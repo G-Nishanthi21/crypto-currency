@@ -22,27 +22,36 @@ function CoinTable(props) {
                 );
 
                 if (response.status !== 200) {
-                    setError("Unable to load coin data");
-                    setLoading(false);
-                    return;
+                    throw new Error("API request failed");
                 }
 
                 const data = await response.json();
 
-                setCoins(data);
-                setLoading(false);
-                connectSocket();
+                if (shouldReconnect) {
+
+                    setCoins(data);
+                    setLoading(false);
+
+                    connectSocket();
+
+                }
 
             } catch (error) {
 
-                setError("Unable to load coin data");
-                setLoading(false);
+                if (shouldReconnect) {
+                    setError("Unable to load coin data");
+                    setLoading(false);
+                }
 
             }
 
         }
 
         function connectSocket() {
+
+            if (shouldReconnect === false) {
+                return;
+            }
 
             socket = new WebSocket(
                 "wss://stream.binance.com:9443/stream?streams=btcusdt@ticker/ethusdt@ticker/bnbusdt@ticker/solusdt@ticker/xrpusdt@ticker/adausdt@ticker/dogeusdt@ticker/trxusdt@ticker/avaxusdt@ticker/linkusdt@ticker"
@@ -58,6 +67,8 @@ function CoinTable(props) {
 
                 const message = JSON.parse(event.data);
                 const ticker = message.data;
+
+                console.log("Live Update:", ticker.s, ticker.c);
 
                 setCoins(function (oldCoins) {
 
@@ -92,9 +103,15 @@ function CoinTable(props) {
 
             };
 
-            socket.onclose = () => {
+            socket.onerror = (event) => {
 
-                console.log("WebSocket Disconnected");
+                console.log("WebSocket Error:", event);
+
+            };
+
+            socket.onclose = (event) => {
+
+                console.log("WebSocket Disconnected:", event.code, event.reason);
 
                 if (shouldReconnect) {
 
@@ -110,14 +127,6 @@ function CoinTable(props) {
 
             };
 
-            socket.onerror = () => {
-
-                console.log("WebSocket Error");
-
-                socket.close();
-
-            };
-
         }
 
         getCoins();
@@ -129,7 +138,9 @@ function CoinTable(props) {
             clearTimeout(reconnectTimer);
 
             if (socket) {
+
                 socket.close();
+
             }
 
         };
